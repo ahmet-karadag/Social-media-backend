@@ -27,8 +27,9 @@ messageSchema.statics.sendNewMessage = async function (data) {
   if (!data || typeof data !== "object") {
     throw new Error("missing data");
   }
-
+  
   const { senderId, receiverId, content } = data;
+
   if (!senderId || !receiverId || !content) {
     throw new Error(
       "Missing fields: senderId, receiverId and content are required",

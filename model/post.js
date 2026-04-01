@@ -27,13 +27,34 @@ const postSchema = new mongoose.Schema({
 postSchema.statics.createPost = async function(data){
     const Post = this;
 
-    if(!data.title || !data.content){
-        throw new Error('title and content are required');
+    if (!data || typeof data !== 'object') {
+        throw new Error('Missing post data');
     }
+    const {title,content,authorId} = data;
+
+    if (!title || !content || !authorId) {
+        throw new Error('Missing fields: title, content, and authorId are required');
+    }
+    //mongodb id kontrolü
+    if(!mongoose.Types.ObjectId.isValid(authorId)){
+        throw new Error('Invalid author ID');
+    }
+
+    const postTitle = title.trim();
+    const postContent = content.trim();
+
+    if(postTitle.length < 4 || postTitle.length > 100){
+        throw new Error('Title must be between 4 and 100 chracters');
+    }
+    if(postContent.length === 0){
+        throw new Error('post content cannot be empty');
+    }
+
+
     const newPost = new Post({
-        title: data.title,
-        content: data.content,
-        author: data.authorId // Controller'dan gelen paket içindeki id
+        title: postTitle,
+        content: postContent,
+        author: authorId // Controller'dan gelen paket içindeki id
     });
 
     return await newPost.save();
