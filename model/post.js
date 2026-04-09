@@ -60,4 +60,32 @@ postSchema.statics.createPost = async function(data){
     return await newPost.save();
 };
 
+postSchema.statics.getAllPosts = async function(options = {}){
+    const Post = this;
+
+    const page = Math.max(1, parseInt(options.page) || 1);
+    const limit = Math.max(1,parseInt(options.limit) || 10);
+    const skip = (page - 1) * limit;
+
+    const posts = await Post.find()
+    .populate('author', 'username email')
+    .sort({createdAt: -1})
+    .skip(skip)
+    .limit(limit)
+
+    const totalPosts = await Post.countDocuments();
+    const totalPages = Math.ceil(totalPosts / limit);
+
+    return {
+        posts,
+        pagination: {
+            totalPosts,
+            totalPages,
+            currentPage: page,
+            limit
+        }
+    };
+
+};
+
 module.exports = mongoose.model('Post', postSchema);

@@ -19,13 +19,20 @@ exports.createPost = async (req,res) => {
 
 exports.getAllPosts = async (req, res) => {
     try {
-        const Post = require('../model/post'); 
-        const posts = await Post.find()
-            .populate('author', 'username')
-            .sort({ createdAt: -1 });
+        const result = await Post.getAllPosts({
+          page: req.query.page,
+          limit: req.query.limit
+        });
+       res.status(200).json({
+            success: true,
+            data: result.posts,
+            pagination: result.pagination
+        }); 
             
-        res.status(200).json(posts);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ 
+            success: false, 
+            message: error.message 
+        });
     }
 };
