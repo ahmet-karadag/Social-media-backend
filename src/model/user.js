@@ -28,7 +28,7 @@ const userSchema = new mongoose.Schema({
   
 },{ timestamps: true});
 
-userSchema.pre('save', async function(next){
+userSchema.pre('save', async function(){
     const user = this;
 
     if(user.isModified('password')){
@@ -36,10 +36,11 @@ userSchema.pre('save', async function(next){
          const salt = await bcrypt.genSalt(10);
         user.password = await bcrypt.hash(user.password,salt);
        } catch (error) {
-        return next(error);
+        throw new Error('Password encryption failed');
+        //return next(error);
        }
     }
-    next();
+    //next();
 });
 
 userSchema.statics.registerUser = async function (data) {
