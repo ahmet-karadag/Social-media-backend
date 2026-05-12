@@ -1,9 +1,32 @@
+import mongoose from "mongoose";
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 
-const mongoose = require('mongoose');
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
 
-const userSchema = new mongoose.Schema({
+export interface IUser {
+    username: string;
+    email:string;
+    password: string;
+    createdAt?: Date;
+    updatedAt?: Date;
+}
+
+interface IUserMethods {
+    generateAuthToken(): string; 
+}
+interface IAuthData {
+    username?: string;
+    email: string;
+    password: string;
+}
+
+interface IUserModel extends mongoose.Model<IUserDocument> {
+   registerUser(data: IAuthData): Promise<IUserDocument>;
+    findByCredentials(data: IAuthData): Promise<IUserDocument>;
+}
+export type IUserDocument = IUser & IUserMethods & mongoose.Document;
+
+const userSchema = new mongoose.Schema<IUserDocument,IUserModel>({
     username: {
         type: String,
         required: true,
@@ -28,7 +51,7 @@ const userSchema = new mongoose.Schema({
   
 },{ timestamps: true});
 
-userSchema.pre('save', async function(){
+userSchema.pre<IUserDocument>('save', async function(){
     const user = this;
 
     if(user.isModified('password')){
@@ -43,47 +66,43 @@ userSchema.pre('save', async function(){
     //next();
 });
 
-userSchema.statics.registerUser = async function (data) {
-    const User = this;
-    if (!data || typeof data !== 'object') {
-        throw new Error('User data is required');
-    }
+userSchema.statics.registerUser = async function (data: IAuthData): Promise<IUserDocument> {
+    const User = this as IUserModel;
 
     const { username, email, password } = data;
 
-    if(!username || !email || !password){
+    if(!username?.trim() || !email.trim() || !password){
      throw new Error('username, email and password are required');
     }
     //veritbanına kayıttan önce kontrol ediyorum.
     const existingUser = await User.findOne({
         $or: [
             { email: email.toLowerCase() },
-            { username: username.trim() }
+            { username: username?.trim() }
         ]
     });
     if(existingUser){
      if(existingUser.email === email.toLowerCase()){
        throw new Error('this email is already registered');
      }
-     if(existingUser.username === username.trim()){
+     if(existingUser.username === username?.trim()){
        throw new Error('this username is alraedy taken');
      }
     }
     const newUser = new User({
-        username: username.trim(),
+        username: username?.trim(),
         email: email.toLowerCase(),
         password: password //pre save sayesinde otomotik hasliyorum.
     });
     return await newUser.save();
 };
 
-userSchema.statics.findByCredentials = async function(data){
-const User = this;
+userSchema.statics.findByCredentials = async function(data: IAuthData): Promise<IUserDocument>{
+const User = this as IUserModel;
 
-    if(!data || typeof data !== 'object'){
-         throw new Error('login data is required');
-    }
+   
     const { email, password } = data;
+    
     if (!email || !password || email.trim() === '' || password.trim() === '') {
         throw new Error('Email and password are required');
     }
@@ -101,12 +120,17 @@ const User = this;
     return user;
 };
 
-userSchema.methods.generateAuthToken = function () {
-    const user = this;
+userSchema.methods.generateAuthToken = function (): string {
+    const user = this as IUserDocument;
+
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+        throw new Error('JWT_SECRET is not defined');
+    }
     try {
         const token = jwt.sign(
         { id: user._id, username: user.username },
-        process.env.JWT_SECRET,
+        secret,
         { expiresIn: '1h' }
     );
     return token;
@@ -117,7 +141,7 @@ userSchema.methods.generateAuthToken = function () {
 };
 //güvenlik için json çıktısından şifreyi gizledik.
 userSchema.methods.toJSON = function () {
-    const user = this;
+    const user = this as IUserDocument;
     const userObject = user.toObject();
 
     delete userObject.password; // API yanıtlarında şifre asla gözükmez
@@ -125,6 +149,6 @@ userSchema.methods.toJSON = function () {
 };
 
 
-const User = mongoose.model('User',userSchema);
+const User = mongoose.model<IUserDocument, IUserModel>('User',userSchema);
 
-module.exports = User;
+export default User;
