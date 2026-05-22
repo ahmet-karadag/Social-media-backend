@@ -2,7 +2,7 @@
 import {IUserDocument} from '../model/user';
 //IUserDocument kullanma sebebim veri + metodlar almak.
 declare global {
-    namespace express {
+    namespace Express {
         interface Request {
             user?:IUserDocument;
         }
