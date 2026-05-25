@@ -1,10 +1,11 @@
 
-const User = require("../model/user");
-const bcrypt = require('bcryptjs');
+import User from '../model/user';
+import { Request,Response } from 'express';
+
 const jwt = require("jsonwebtoken");
 
 
-exports.register = async(req,res) => {
+exports.register = async(req: Request,res: Response): Promise<void | Response> => {
     console.log("Buraya kadar ulaştı!");
     try{
     
@@ -16,11 +17,12 @@ exports.register = async(req,res) => {
       token
      })
     }catch(error){
-       res.status(400).json({ message: error.message });
+        const errorMessage = error instanceof Error? error.message:'register error';
+        return res.status(400).json({ message: errorMessage });
     }
 }
 
-exports.login = async(req,res) => {
+exports.login = async(req:Request,res: Response): Promise<void | Response> => {
      try{
      const user = await User.findByCredentials(req.body);
      const token = user.generateAuthToken();//modelden gelen fonk ile otomotik oluşturuyoruz.
@@ -33,6 +35,7 @@ exports.login = async(req,res) => {
         });
 
      }catch(error){
-         res.status(400).json({ message: error.message });
+        const errorMessage = error instanceof Error? error.message: 'login error'
+        return res.status(400).json({ message: errorMessage});
      }
 }
