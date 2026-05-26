@@ -1,6 +1,26 @@
-const mongoose = require("mongoose");
 
-const messageSchema = new mongoose.Schema(
+import mongoose,{Document,Model,Schema} from "mongoose";
+
+export interface IMessage {
+  sender: mongoose.Schema.Types.ObjectId;
+  receiver: mongoose.Schema.Types.ObjectId;
+  content: String;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+interface ISendMessageData {
+  senderId: string;
+  receiverId: string;
+  content: string;
+}
+
+interface IMessageModel extends Model<IMessageDocument> {
+  sendNewMessage(data: ISendMessageData): Promise<IMessageDocument>;
+  getChatHistory(myId: String, userId: String): Promise<IMessageDocument>
+}
+export type IMessageDocument = IMessage & Document;
+
+const messageSchema = new mongoose.Schema<IMessageDocument,IMessageModel>(
   {
     sender: {
       type: mongoose.Schema.Types.ObjectId,
@@ -21,8 +41,8 @@ const messageSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-messageSchema.statics.sendNewMessage = async function (data) {
-  const Message = this;
+messageSchema.statics.sendNewMessage = async function (data: ISendMessageData): Promise<IMessageDocument> {
+  const Message = this as IMessageModel;
   //eğer data gelmzse hata dönecek.
   if (!data || typeof data !== "object") {
     throw new Error("missing data");
@@ -50,28 +70,29 @@ messageSchema.statics.sendNewMessage = async function (data) {
   }
   
   const newMessage = new Message({
-    sender: senderId,
-    receiver: receiverId,
+    sender: new mongoose.Types.ObjectId(senderId),
+    receiver: new mongoose.Types.ObjectId(receiverId),
     content: messageContent,
   });
   return await newMessage.save();
 };
 
 // Mesaj Geçmişini Getirmemiz
-messageSchema.statics.getChatHistory = async function (myId, userId) {
-    if (!mongoose.Types.ObjectId.isValid(myId) || !mongoose.Types.ObjectId.isValid(userId)) {
+messageSchema.statics.getChatHistory = async function (myId: string, userId: string): Promise<IMessageDocument[]> {
+  const Message = this as IMessageModel;  
+  if (!mongoose.Types.ObjectId.isValid(myId) || !mongoose.Types.ObjectId.isValid(userId)) {
       throw new Error('Invalid user IDs provided for chat history');
   }
   
-  return await this.find({
+  return await Message.find({
     $or: [
       { sender: myId, receiver: userId },
       { sender: userId, receiver: myId },
     ],
-  })
+  }as any )
     .sort({ createdAt: 1 })
     .populate("sender", "username")
     .populate("receiver", "username");
 };
-
-module.exports = mongoose.model("Message", messageSchema);
+export default mongoose.model<IMessageDocument, IMessageModel>("Message", messageSchema);
+//module.exports = mongoose.model("Message", messageSchema);
