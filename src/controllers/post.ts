@@ -1,10 +1,13 @@
 
 import { Request, Response } from "express";
 import Post from "../model/post";
+import { IUserDocument } from '../model/user';
 
+interface AuthenticatedRequest extends Request {
+    user?: IUserDocument;
+}
 
-
-export const createPost = async (req: Request,res: Response): Promise<void | Response> => {
+export const createPost = async (req: AuthenticatedRequest,res: Response): Promise<void | Response> => {
 
     try {
         if(!req.user){
@@ -24,7 +27,7 @@ export const createPost = async (req: Request,res: Response): Promise<void | Res
     }
 };
 
-export const getAllPosts = async (req: Request, res: Response): Promise<void | Response> => {
+export const getAllPosts = async (req: AuthenticatedRequest, res: Response): Promise<void | Response> => {
     try {
         const result = await Post.getAllPosts({
           page: req.query.page as string,

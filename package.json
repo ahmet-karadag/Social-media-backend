@@ -3,8 +3,10 @@
   "version": "1.0.0",
   "main": "app.js",
   "scripts": {
-    "test": "cross-env NODE_ENV=test vitest",
-    "start": "node app.js"
+    "dev": "nodemon --watch src --exec ts-node src/app.ts",
+  "test": "cross-env NODE_ENV=test vitest",
+  "start": "node dist/app.js",
+  "build": "tsc"
   },
   "keywords": [],
   "author": "",

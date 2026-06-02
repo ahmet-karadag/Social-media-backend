@@ -1,11 +1,10 @@
 
 import User from '../model/user';
 import { Request,Response } from 'express';
+import  Jwt  from 'jsonwebtoken';
 
-const jwt = require("jsonwebtoken");
 
-
-exports.register = async(req: Request,res: Response): Promise<void | Response> => {
+export const register = async(req: Request,res: Response): Promise<void | Response> => {
     console.log("Buraya kadar ulaştı!");
     try{
     
@@ -22,7 +21,7 @@ exports.register = async(req: Request,res: Response): Promise<void | Response> =
     }
 }
 
-exports.login = async(req:Request,res: Response): Promise<void | Response> => {
+export const login = async(req:Request,res: Response): Promise<void | Response> => {
      try{
      const user = await User.findByCredentials(req.body);
      const token = user.generateAuthToken();//modelden gelen fonk ile otomotik oluşturuyoruz.

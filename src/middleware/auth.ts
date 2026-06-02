@@ -15,7 +15,7 @@ interface DecodedToken {
 
 
 
-const authMiddleware = async(req:Request,res: Response,next:NextFunction): Promise<void | Response>=>{
+export const authMiddleware = async(req:Request,res: Response,next:NextFunction): Promise<void | Response>=>{
     const authHeader = req.headers.authorization;
 
     if(!authHeader || !authHeader.startsWith('Bearer')){
@@ -36,7 +36,7 @@ const authMiddleware = async(req:Request,res: Response,next:NextFunction): Promi
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
-        req.user = user;//token içindekileri requeste ekle
+        (req as any).user = user;//token içindekileri requeste ekle
         next();
     } catch (error) {
         return res.status(401).json({message: 'expired token'});
