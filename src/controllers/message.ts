@@ -1,7 +1,7 @@
 
 import { Request,Response } from "express";
 import Message from '../model/message';
-import message from "../model/message";
+
 
 //metinsel mesaj gönderme kısmımız
 
