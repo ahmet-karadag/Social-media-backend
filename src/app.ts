@@ -10,6 +10,7 @@ import authRoutes from './routes/auth';
 import userRoutes from './routes/user';
 import messageRoutes from './routes/message';
 import postRoutes from './routes/post';
+import commentRoutes from './routes/comment';
 
 dotenv.config();
 connectDB();
@@ -20,6 +21,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/posts',postRoutes);
+app.use('/api/comments',commentRoutes);
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
