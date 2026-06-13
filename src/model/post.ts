@@ -1,5 +1,5 @@
 
-import mongoose,{Document,Model,Schema} from "mongoose";
+import mongoose,{Document,Model,Schema} from 'mongoose';
 
 export interface IPost extends Document {
     author: mongoose.Types.ObjectId;
@@ -19,7 +19,7 @@ interface ICreatePostInput{
 // getAllPosts fonksiyonuna gelecek sayfalama seçeneklerim
 interface IGetAllPostOptions {
     page?: string | number ;
-   limit?: string | number;
+    limit?: string | number;
 }
 interface IGetAllPostResult {
     posts: IPost[];
@@ -66,7 +66,7 @@ postSchema.statics.createPost = async function(data: ICreatePostInput): Promise<
     }
     const {title,content,authorId} = data;
 
-    if (typeof !title !== 'string'  || typeof content !== 'string' || typeof authorId !== 'string') {
+    if (typeof title !== 'string'  || typeof content !== 'string' || typeof authorId !== 'string') {
         throw new Error('Missing fields: title, content, and authorId are required');
     }
     //mongodb id kontrolü

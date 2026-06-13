@@ -34,7 +34,7 @@ export const authMiddleware = async(req:Request,res: Response,next:NextFunction)
      const user = await User.findById(decoded.id);
 
         if (!user) {
-            return res.status(404).json({ message: "User not found" });
+            return res.status(404).json({ message: 'User not found' });
         }
         (req as any).user = user;//token içindekileri requeste ekle
         next();

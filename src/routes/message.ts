@@ -8,7 +8,7 @@ import *as  messageController from '../controllers/message'
 // const authMiddleware = require('../middleware/auth');
 // const messageController = require('../controllers/message');
 
-//mesajı gönderme işlemi
+//mesajı gönderme ve alma işlemi
 router.post('/send',authMiddleware,messageController.sendMessage);
 
 router.get('/:userId',authMiddleware,messageController.getMessages);

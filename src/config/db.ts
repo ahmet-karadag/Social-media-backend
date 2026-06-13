@@ -1,5 +1,5 @@
 
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 const connectDB = async(): Promise<void> =>{
    const mongoUri: string | undefined = process.env.MONGO_URI;
@@ -7,7 +7,7 @@ const connectDB = async(): Promise<void> =>{
  try{
 
    if (!mongoUri) {
-      throw new Error("MONGO_URI environment variable is missing");
+      throw new Error('MONGO_URI environment variable is missing');
     }
     await mongoose.connect(mongoUri);
     console.log('Connected to MongoDB');

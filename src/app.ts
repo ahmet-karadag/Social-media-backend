@@ -2,7 +2,7 @@
 // const dotenv = require('dotenv');
 // const connectDB = require('./src/config/db');
 
-import express,{ Application} from "express";
+import express,{ Application} from 'express';
 import dotenv from 'dotenv'
 import connectDB from './config/db';
 
@@ -17,8 +17,8 @@ connectDB();
 const app: Application = express();
 
 app.use(express.json());
-app.use("/api/auth", authRoutes);
-app.use("/api/user", userRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/user', userRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/posts',postRoutes);
 app.use('/api/comments',commentRoutes);

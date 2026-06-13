@@ -5,7 +5,7 @@ import  Jwt  from 'jsonwebtoken';
 
 
 export const register = async(req: Request,res: Response): Promise<void | Response> => {
-    console.log("Buraya kadar ulaştı!");
+    console.log('Buraya kadar ulaştı!');
     try{
     
       const user = await User.registerUser(req.body);
@@ -28,7 +28,7 @@ export const login = async(req:Request,res: Response): Promise<void | Response> 
 
 
     res.status(200).json({ 
-            message: "Login successful", 
+            message: 'Login successful', 
             user, 
             token 
         });

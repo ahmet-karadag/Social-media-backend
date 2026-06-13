@@ -1,5 +1,5 @@
 
-import { Request,Response } from "express";
+import { Request,Response } from 'express';
 import Message from '../model/message';
 import User, { IUserDocument } from '../model/user';
 

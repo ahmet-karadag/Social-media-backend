@@ -1,5 +1,5 @@
 
-import mongoose,{Document,Model,Schema} from "mongoose";
+import mongoose,{Document,Model,Schema} from 'mongoose';
 
 export interface IMessage {
   sender: mongoose.Schema.Types.ObjectId;
@@ -24,12 +24,12 @@ const messageSchema = new mongoose.Schema<IMessageDocument,IMessageModel>(
   {
     sender: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
       required: true,
     },
     receiver: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
       required: true,
     },
     content: {
@@ -44,15 +44,15 @@ const messageSchema = new mongoose.Schema<IMessageDocument,IMessageModel>(
 messageSchema.statics.sendNewMessage = async function (data: ISendMessageData): Promise<IMessageDocument> {
   const Message = this as IMessageModel;
   //eğer data gelmzse hata dönecek.
-  if (!data || typeof data !== "object") {
-    throw new Error("missing data");
+  if (!data || typeof data !== 'object') {
+    throw new Error('missing data');
   }
   
   const { senderId, receiverId, content } = data;
 
   if (!senderId || !receiverId || !content) {
     throw new Error(
-      "Missing fields: senderId, receiverId and content are required",
+      'Missing fields: senderId, receiverId and content are required',
     );
   }
   if (!mongoose.Types.ObjectId.isValid(senderId) || !mongoose.Types.ObjectId.isValid(receiverId)) {
@@ -60,13 +60,13 @@ messageSchema.statics.sendNewMessage = async function (data: ISendMessageData): 
     }
 
   if (senderId.toString() === receiverId.toString()) {
-    throw new Error("Sender and receiver cannot be the same user");
+    throw new Error('Sender and receiver cannot be the same user');
   }
 
   const messageContent = String(content).trim();
 
   if (messageContent.length === 0) {
-    throw new Error("Content cannot be empty");
+    throw new Error('Content cannot be empty');
   }
   
   const newMessage = new Message({
@@ -91,8 +91,8 @@ messageSchema.statics.getChatHistory = async function (myId: string, userId: str
     ],
   }as any )
     .sort({ createdAt: 1 })
-    .populate("sender", "username")
-    .populate("receiver", "username");
+    .populate('sender', 'username')
+    .populate('receiver', 'username');
 };
-export default mongoose.model<IMessageDocument, IMessageModel>("Message", messageSchema);
+export default mongoose.model<IMessageDocument, IMessageModel>('Message', messageSchema);
 //module.exports = mongoose.model("Message", messageSchema);

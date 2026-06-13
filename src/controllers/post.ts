@@ -1,6 +1,6 @@
 
-import { Request, Response } from "express";
-import Post from "../model/post";
+import { Request, Response } from 'express';
+import Post from '../model/post';
 import { IUserDocument } from '../model/user';
 
 interface AuthenticatedRequest extends Request {

@@ -1,6 +1,6 @@
 
-import mongoose,{Document,Model, Schema} from "mongoose";
-import { error } from "node:console";
+import mongoose,{Document,Model, Schema} from 'mongoose';
+import { error } from 'node:console';
 
 
 interface IComment extends Document {
@@ -63,8 +63,8 @@ likes :[{
 
 commentSchema.statics.createComment = async function(data:ICreateCommentData): Promise<ICommentDocument>{
 const Comment = this as ICommentModel;
-if (!data || typeof data !== "object") {
-    throw new Error("missing data");
+if (!data || typeof data !== 'object') {
+    throw new Error('missing data');
   }
   const {authorId,postId,content} = data;
 
@@ -86,7 +86,7 @@ if (!data || typeof data !== "object") {
 commentSchema.statics.getCommentsByPost = async function(postId: string, options: IGetCommentOptions = {}): Promise<IGetCommentsResult>{
 const Comment = this as ICommentModel;
 if (!mongoose.Types.ObjectId.isValid(postId)) {
-    throw new Error("invalid postId");
+    throw new Error('invalid postId');
   }
   const page = Math.max(1,typeof options?.page === 'string' ? parseInt(options.page,10): options.page || 1);
   const limit = Math.max(1, typeof options?.limit === 'string' ? parseInt(options.limit, 10) : options.limit || 1);
@@ -112,5 +112,5 @@ if (!mongoose.Types.ObjectId.isValid(postId)) {
 }
 
 
-const Comment = mongoose.model<IComment,ICommentModel>("Comment", commentSchema);
+const Comment = mongoose.model<IComment,ICommentModel>('Comment', commentSchema);
 export default Comment;

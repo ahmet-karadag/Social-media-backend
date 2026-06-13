@@ -1,6 +1,6 @@
 
-import { Request,Response } from "express";
-import Comment from "../model/comment";
+import { Request,Response } from 'express';
+import Comment from '../model/comment';
 import {IUserDocument} from '../model/user'
 
 interface AuthenticatedRequest extends Request {
