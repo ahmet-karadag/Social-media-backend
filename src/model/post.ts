@@ -1,51 +1,53 @@
 
-import mongoose,{Document,Model,Schema} from 'mongoose';
+  import mongoose,{Document,Model,Schema} from 'mongoose';
 
-export interface IPost extends Document {
+  export interface IPost extends Document {
     author: mongoose.Types.ObjectId;
     title: string;
     content: string;
     likes: mongoose.Types.ObjectId[];
     createdAt: Date;
     updatedAt: Date;
-}
+  }
 
-interface ICreatePostInput{
+  interface ICreatePostInput{
     title: string;
     content: string;
     authorId: string;
     [key: string]: unknown;
-}
-// getAllPosts fonksiyonuna gelecek sayfalama seçeneklerim
-interface IGetAllPostOptions {
+  }
+  // getAllPosts fonksiyonuna gelecek sayfalama seçeneklerim
+  interface IGetAllPostOptions {
     page?: string | number ;
     limit?: string | number;
-}
-interface IGetAllPostResult {
+  }
+
+  interface IGetAllPostResult {
     posts: IPost[];
     pagination: {
-            totalPosts: number;
-            totalPages: number;
-            currentPage: number;
-            limit:number;
-        }
-}
-interface IPostModel extends Model<IPost> {
+      totalPosts: number;
+      totalPages: number;
+      currentPage: number;
+      limit:number;
+    }
+  }
+
+  interface IPostModel extends Model<IPost> {
     createPost(data: ICreatePostInput): Promise<IPost>;
     getAllPosts(options?: IGetAllPostOptions): Promise<IGetAllPostResult>;
-} 
+  } 
 
-const postSchema = new mongoose.Schema<IPost,IPostModel>({
+  const postSchema = new mongoose.Schema<IPost,IPostModel>({
     author: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true
     },
     title:{
-        type: String,
-        required: [true,'tit is required'],
-        trim: true,
-        maxlength: 100
+      type: String,
+      required: [true,'tit is required'],
+      trim: true,
+      maxlength: 100
     },
     content: {
         type: String,
@@ -56,45 +58,46 @@ const postSchema = new mongoose.Schema<IPost,IPostModel>({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
     }]
-},{timestamps: true});
+  },{timestamps: true});
 
-postSchema.statics.createPost = async function(data: ICreatePostInput): Promise<IPost>{
+  postSchema.statics.createPost = async function(data: ICreatePostInput): Promise<IPost>{
     const Post = this as IPostModel;
 
     if (!data || typeof data !== 'object') {
-        throw new Error('Missing post data');
+      throw new Error('Missing post data');
     }
+
     const {title,content,authorId} = data;
 
     if (typeof title !== 'string'  || typeof content !== 'string' || typeof authorId !== 'string') {
-        throw new Error('Missing fields: title, content, and authorId are required');
+      throw new Error('Missing fields: title, content, and authorId are required');
     }
     //mongodb id kontrolü
     if(!mongoose.Types.ObjectId.isValid(authorId)){
-        throw new Error('Invalid author ID');
+      throw new Error('Invalid author ID');
     }
 
     const postTitle = title.trim();
     const postContent = content.trim();
 
     if(postTitle.length < 4 || postTitle.length > 100){
-        throw new Error('Title must be between 4 and 100 chracters');
-    }
-    if(postContent.length === 0){
-        throw new Error('post content cannot be empty');
+      throw new Error('Title must be between 4 and 100 chracters');
     }
 
+    if(postContent.length === 0){
+      throw new Error('post content cannot be empty');
+    }
 
     const newPost = new Post({
-        title: postTitle,
-        content: postContent,
-        author: authorId // Controller'dan gelen paket içindeki id
+      title: postTitle,
+      content: postContent,
+      author: authorId // Controller'dan gelen paket içindeki id
     });
 
     return await newPost.save();
-};
+  };
 
-postSchema.statics.getAllPosts = async function(options: IGetAllPostOptions = {}): Promise<IGetAllPostResult>{
+  postSchema.statics.getAllPosts = async function(options: IGetAllPostOptions = {}): Promise<IGetAllPostResult>{
     const Post = this as IPostModel;
 
     const page = Math.max(1,typeof options.page === 'string' ? parseInt(options.page,10): options.page || 1);
@@ -103,10 +106,10 @@ postSchema.statics.getAllPosts = async function(options: IGetAllPostOptions = {}
     const skip = (page - 1) * limit;
 
     const posts = await Post.find()
-    .populate('author', 'username email')
-    .sort({createdAt: -1})
-    .skip(skip)
-    .limit(limit);
+      .populate('author', 'username email')
+      .sort({createdAt: -1})
+      .skip(skip)
+      .limit(limit);
 
     const totalPosts = await Post.countDocuments();
     const totalPages = Math.ceil(totalPosts / limit);
@@ -120,8 +123,7 @@ postSchema.statics.getAllPosts = async function(options: IGetAllPostOptions = {}
             limit
         }
     };
+  };
 
-};
-
-const Post = mongoose.model<IPost,IPostModel>('Post', postSchema);
-export default Post;
+  const Post = mongoose.model<IPost,IPostModel>('Post', postSchema);
+  export default Post;
