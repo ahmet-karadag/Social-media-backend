@@ -73,7 +73,14 @@
       receiver: new mongoose.Types.ObjectId(receiverId),
       content: messageContent,
     });
-    return await newMessage.save();
+    
+    try {
+      return await newMessage.save();
+    } catch (error) {
+      const errorMessage = error instanceof Error? error.message: 'newMessage couldnt be saved';
+      throw new Error(errorMessage);
+    }
+    
   };
 
   // Mesaj Geçmişini Getirmemiz
@@ -83,16 +90,21 @@
     if (!mongoose.Types.ObjectId.isValid(myId) || !mongoose.Types.ObjectId.isValid(userId)) {
       throw new Error('Invalid user IDs provided for chat history');
     }
-  
-    return await Message.find({
-      $or: [
-        { sender: myId, receiver: userId },
-        { sender: userId, receiver: myId },
+    
+    try {
+      return await Message.find({
+        $or: [
+          { sender: myId, receiver: userId },
+          { sender: userId, receiver: myId },
       ],
-    }as any )
-      .sort({ createdAt: 1 })
-      .populate('sender', 'username')
-      .populate('receiver', 'username');
+    } as any )
+        .sort({ createdAt: 1 })
+        .populate('sender', 'username')
+        .populate('receiver', 'username');
+    } catch (error) {
+      const errorMessage = error instanceof Error? error.message: 'ChatHistory couldnt fetched,database error';
+      throw new Error(errorMessage);
+    } 
   };
 
   export default mongoose.model<IMessageDocument, IMessageModel>('Message', messageSchema);

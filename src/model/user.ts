@@ -32,7 +32,7 @@
       required: true,
       unique: true,
       minlength: [4, 'username must be at least 4 chracters'],
-      maxlength: [15, 'username cannot exceed 20 chracters'],
+      maxlength: [15, 'username cannot exceed 15 chracters'],
       match: [/^[a-zA-Z0-9]+$/, 'Username can only contain letters and numbers']
     },
     email: {
@@ -60,7 +60,7 @@
       } catch (error) {
         throw new Error('Password encryption failed');
         //return next(error);
-       }
+      }
     }
     //next();
   });
@@ -76,24 +76,31 @@
     //veritbanına kayıttan önce kontrol ediyorum.
     const existingUser = await User.findOne({
         $or: [
-            { email: email.toLowerCase() },
-            { username: username?.trim() }
+          { email: email.toLowerCase() },
+          { username: username?.trim() }
         ]
     });
+
     if(existingUser){
       if(existingUser.email === email.toLowerCase()){
         throw new Error('this email is already registered');
       }
       if(existingUser.username === username?.trim()){
-       throw new Error('this username is alraedy taken');
+        throw new Error('this username is alraedy taken');
       }
     }
     const newUser = new User({
-        username: username?.trim(),
-        email: email.toLowerCase(),
-        password: password //pre save sayesinde otomotik hasliyorum.
+      username: username?.trim(),
+      email: email.toLowerCase(),
+      password: password //pre save sayesinde otomotik hasliyorum.
     });
-    return await newUser.save();
+    
+    try {
+      return await newUser.save();
+    } catch (error) {
+      const errorMessage = error instanceof Error? error.message: 'newuser couldnt be registered error';
+      throw new Error(errorMessage);
+    }
   };
 
   userSchema.statics.findByCredentials = async function(data: IAuthData): Promise<IUserDocument>{
@@ -102,17 +109,19 @@
     const { email, password } = data;
     
     if (!email || !password || email.trim() === '' || password.trim() === '') {
-        throw new Error('Email and password are required');
+      throw new Error('Email and password are required');
     }
     
     const user = await User.findOne({email: email.toLowerCase().trim()});
-    if (!user) throw new Error('Invalid credentials');
+    if (!user) {
+    throw new Error('Invalid credentials');
+    }
 
     try {
       const isMatch = await bcrypt.compare(data.password,user.password);
       if(!isMatch) throw new Error('invalid password');
     } catch (error) {
-    throw new Error('Authentication failed');
+      throw new Error('Authentication failed');
      }
     return user;
   };
@@ -132,9 +141,11 @@
       );
     return token;
     } catch (error) {
-       throw new Error('token generation failed'); 
+      const errorMessage = error instanceof Error? error.message: 'Token generation failed';
+      throw new Error(errorMessage);
     }
   };
+  
 //güvenlik için json çıktısından şifreyi gizledik.
   userSchema.methods.toJSON = function () {
     const user = this as IUserDocument;

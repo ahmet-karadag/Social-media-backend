@@ -86,7 +86,12 @@
       post: new mongoose.Types.ObjectId(postId),
       content: cleanContent
     });
-    return await newComment.save();
+    try {
+      return await newComment.save();   
+    } catch (error) {
+      const errorMessage = error instanceof Error? error.message: 'newComment couldnt be saved,database error';
+      throw new Error(errorMessage);  
+    }
   };
 
   commentSchema.statics.getCommentsByPost = async function(postId: string, options: IGetCommentOptions = {}): Promise<IGetCommentsResult>{
@@ -99,15 +104,16 @@
     const page = Math.max(1,typeof options?.page === 'string' ? parseInt(options.page,10): options.page || 1);
     const limit = Math.max(1, typeof options?.limit === 'string' ? parseInt(options.limit, 10) : options.limit || 1);
     const skip = (page - 1) * limit;
-
-    const comments = await Comment.find({post: postId})
-      .sort({createdAt: -1})
-      .skip(skip)
-      .limit(limit)
-      .populate('author','username');
+    
+    try {
+      const comments = await Comment.find({post: postId})
+        .sort({createdAt: -1})
+        .skip(skip)
+        .limit(limit)
+        .populate('author','username');
   
-    const totalComments = await Comment.countDocuments({post: postId});
-    const totalPages = Math.ceil(totalComments / limit);
+      const totalComments = await Comment.countDocuments({post: postId});
+      const totalPages = Math.ceil(totalComments / limit);
 
     return {
       comments,
@@ -117,7 +123,11 @@
         currentPage: page,
         limit
       }
-    };
+    };   
+    } catch (error) {
+      const errorMessage = error instanceof Error? error.message: 'Comment couldnt be fetched,database error';
+      throw new Error(errorMessage);  
+    }
   };
 
 
