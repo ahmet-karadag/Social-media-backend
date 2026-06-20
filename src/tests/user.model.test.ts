@@ -2,11 +2,14 @@
   import { describe,it,expect,beforeAll,afterAll,beforeEach } from 'vitest';
   import mongoose from 'mongoose';
   import User from '../model/user';
+  import dotenv from 'dotenv'; 
 
+  dotenv.config();
+  
   describe('User model test', ()=>{
 
     beforeAll( async() => {
-      const testDbUri = 'mongodb+srv://social:social1234@social.vzzxxgh.mongodb.net/social_media_test'; 
+      const testDbUri: string | undefined =  process.env.MONGO_URI!;
       await mongoose.connect(testDbUri); 
     });
 
