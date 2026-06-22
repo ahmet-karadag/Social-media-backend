@@ -121,7 +121,7 @@
       const isMatch = await bcrypt.compare(data.password,user.password);
       if(!isMatch) throw new Error('invalid password');
     } catch (error) {
-      throw new Error('Authentication failed');
+      throw new Error('invalid password');
      }
     return user;
   };

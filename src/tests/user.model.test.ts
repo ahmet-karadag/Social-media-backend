@@ -3,6 +3,7 @@
   import mongoose from 'mongoose';
   import User from '../model/user';
   import dotenv from 'dotenv'; 
+  import Jwt  from 'jsonwebtoken';
 
   dotenv.config();
   
@@ -21,7 +22,7 @@
     beforeEach(async () => {
       await User.deleteMany(); 
     });
-
+    //register user test 
     it('registerUser function test',async() => {
       
       const fakeUser = {
@@ -38,6 +39,7 @@
       expect(savedUser.password).not.toBe(fakeUser.password);
     });  
     
+    //is there user
     it('is there user', async() => {
       const existingUser = {
         username: 'uniqueuser',
@@ -51,6 +53,7 @@
       expect(foundUser).not.toBe(null);
       expect(foundUser?.username).toBe(existingUser.username);
     });
+
     //for same email. 
     it('if same email registered again, return error', async() => {
       const firstUser = {
@@ -71,6 +74,7 @@
         .rejects
         .toThrow('this email is already registered');
     });
+
   //for same username
     it('username not to be same', async() => {
       const firstUser = {
@@ -90,6 +94,7 @@
         .rejects
         .toThrow('this username is alraedy taken');
     });
+
     //login 
     it('user can login with real email and password', async() =>{
       
@@ -112,5 +117,74 @@
       expect(loggedInUser.email).toBe(savedUser.email);
       expect(loggedInUser.username).toBe(savedUser.username);
 
-    })
+    });
+    
+    //wrong mail 
+    it('login with wrong mail', async() => {
+      
+      const fakeUser = {
+        username: 'wronguser',
+        email: 'wrongmail@gmail.com',
+        password: 'wrongpassword'  
+      };
+      
+      const savedUser = await User.registerUser(fakeUser);
+      
+      await expect(User.findByCredentials({ email: 'thiswrong@gmail.com', password: savedUser.password }))
+        .rejects
+        .toThrow('Invalid credentials');
+    });
+
+    //wrong password
+    it('login with wrong password', async() => {
+      
+      const fakeUser = {
+        username: 'wronguser',
+        email: 'wrongmail@gmail.com',
+        password: 'wrongpassword'  
+      };
+      
+      const savedUser = await User.registerUser(fakeUser);
+      
+      await expect(User.findByCredentials({ email: savedUser.email, password: 'thisiswrongpassword' }))
+        .rejects
+        .toThrow('invalid password');
+    });
+
+    //token test
+    it('token can be valid', async() =>{
+
+      const fakeUser = {
+        username: 'tokenuser',
+        email: 'token@gmail.com',
+        password: 'password123'
+      };
+    
+      const savedUser = await User.registerUser(fakeUser);
+      const token = savedUser.generateAuthToken();
+      
+      expect(token).toBeDefined();
+      expect(typeof token).toBe('string');
+
+      const decoded = Jwt.verify(token, process.env.JWT_SECRET!) as {id: string, username: string};
+
+      expect(decoded.id).toBe(savedUser._id.toString());
+      expect(decoded.username).toBe(savedUser.username);
+    });
+
+    // Test that the toJSON method hides the password field
+    it('should hide password field', async () => {
+      const fakeUser = {
+        username: 'jsonuser',
+        email: 'json@gmail.com',
+        password: 'password123'
+      };
+
+      const savedUser = await User.registerUser(fakeUser);
+      const userJson = savedUser.toJSON();
+
+      expect(userJson.password).toBeUndefined();
+      expect(userJson.email).toBe(savedUser.email);
+      expect(userJson.username).toBe(savedUser.username);
+    });
   });
