@@ -187,4 +187,88 @@
       expect(userJson.email).toBe(savedUser.email);
       expect(userJson.username).toBe(savedUser.username);
     });
+
+    //if username is less than 4 characters --- error
+    it('if username is less than 4 characters', async() =>{
+      const shortUser = {
+        username: 'asd',
+        email: 'short@gmail.com',
+        password: 'password123'
+      };
+
+      await expect(User.registerUser(shortUser))
+        .rejects
+        .toThrow();
+    });
+
+    //if username has more than 15 characters -- error 
+    it('if username has 15 characters', async() =>{
+      const longUser = {
+        username: 'a' .repeat(16),
+        email: 'long@gmail.com',
+        password: 'password123'
+      };
+      
+      await expect(User.registerUser(longUser))
+        .rejects
+        .toThrow();
+    });
+    
+    //if username contains special characters--error
+    it('if username contains special characters', async() =>{
+      const specialCharUser = {
+        username: 'a_bcs',
+        email: 'special@gmail.com',
+        password: 'password123'
+      };
+      
+      await expect(User.registerUser(specialCharUser))
+        .rejects
+        .toThrow();
+    });
+
+    //if email format is invalid-- email validation tests
+    it('if email format is invalid',async() => {
+      const invalidEmail = {
+        username: 'validuser',
+        email: 'invald-emailadress',
+        password: 'password123'
+      };
+
+      await expect(User.registerUser(invalidEmail))
+        .rejects
+        .toThrow();
+    });
+    
+    //password validation test
+    it('if password is less than 6 characters',async() => {
+      const invalidPassword = {
+        username: 'validuser',
+        email: 'valid@gmail.com',
+        password: '1234'
+      };
+
+      await expect(User.registerUser(invalidPassword))
+        .rejects
+        .toThrow();
+    });
+    
+    // when username change but password didnt change.
+    it('when shouldnt re-hash the password if it is not modified', async() => {
+      const fakeUser = {
+        username: 'modifyuser',
+        email: 'modify@gmail.com',
+        password: 'password123'
+      };
+
+      const savedUser = await User.registerUser(fakeUser);
+      const firstHash = savedUser.password;
+
+      savedUser.username = 'updateusername';
+
+      const updatedUser = await savedUser.save();
+
+      expect(updatedUser.password).toBe(firstHash);
+
+    });
   });
