@@ -3,7 +3,7 @@
   import { Router } from 'express';
   const router:Router = Router();
   import *as postController from '../controllers/post';
-  import  authMiddleware from '../middleware/auth'
+  import  authMiddleware from '../middleware/auth';
 
   // const postController = require('../controllers/post');
   // const authMiddleware = require('../middleware/auth');

@@ -1,11 +1,13 @@
 
   import mongoose,{Document,Model,Schema} from 'mongoose';
+  import Like from './likes';
+import { promises } from 'node:dns';
 
   export interface IPost extends Document {
     author: mongoose.Types.ObjectId;
     title: string;
     content: string;
-    likes: mongoose.Types.ObjectId[];
+    likesCount: number;
     createdAt: Date;
     updatedAt: Date;
   }
@@ -35,6 +37,7 @@
   interface IPostModel extends Model<IPost> {
     createPost(data: ICreatePostInput): Promise<IPost>;
     getAllPosts(options?: IGetAllPostOptions): Promise<IGetAllPostResult>;
+    toggleLike(postId: string, userId: mongoose.Types.ObjectId): Promise<{ post: IPost; message: string }>;
   } 
 
   const postSchema = new mongoose.Schema<IPost,IPostModel>({
@@ -54,10 +57,10 @@
         required: [true,'content is required'],
         trim: true
     },
-    likes: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
-    }]
+    likesCount: {
+      type: Number,
+      default: 0
+    }
   },{timestamps: true});
 
   postSchema.statics.createPost = async function(data: ICreatePostInput): Promise<IPost>{
@@ -133,6 +136,54 @@
       throw new Error(errorMessage);
     }
   };
+  
+  postSchema.statics.toggleLike = async function(postId: string,userId: mongoose.Types.ObjectId): Promise<{ post: IPost; message: string } | void>{
+    const Post = this as IPostModel;  
+     
+    try {
+      if (!mongoose.Types.ObjectId.isValid(postId)) {
+        throw new Error('Invalid post ID');
+      } 
+      
+      const existingLike = await Like.findOne({ user: userId, post: postId });
+       
+      let updatedPost: IPost | null = null;
+      let message = '';
+      
+      if (existingLike) {
+        await Like.deleteOne({ _id: existingLike._id });
+        updatedPost = await Post.findByIdAndUpdate(
+          postId,
+          { $inc: { likesCount: -1 } },
+          { new: true }
+        );
+
+        message = 'Like removed successfully';  
+
+      } else {
+        const newLike = new Like({user:userId,post: postId});
+        await newLike.save();
+
+        updatedPost = await Post.findByIdAndUpdate(
+          postId,
+          { $inc: { likesCount: 1 } },
+          { new: true }
+        );
+
+        message = 'Post liked successfully';  
+        
+        if(!updatedPost){
+          throw new Error('Post not found');
+        }
+        
+        return { post: updatedPost, message };
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Like operation failed';
+      throw new Error(errorMessage);
+    }
+    
+  }
 
   const Post = mongoose.model<IPost,IPostModel>('Post', postSchema);
   export default Post;
