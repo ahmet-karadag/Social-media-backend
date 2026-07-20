@@ -137,7 +137,7 @@ import { promises } from 'node:dns';
     }
   };
   
-  postSchema.statics.toggleLike = async function(postId: string,userId: mongoose.Types.ObjectId): Promise<{ post: IPost; message: string } | void>{
+  postSchema.statics.toggleLike = async function(postId: string,userId: mongoose.Types.ObjectId): Promise<{ post: IPost; message: string }>{
     const Post = this as IPostModel;  
      
     try {
@@ -153,14 +153,23 @@ import { promises } from 'node:dns';
       if (existingLike) {
         await Like.deleteOne({ _id: existingLike._id });
         updatedPost = await Post.findByIdAndUpdate(
-          postId,
+          {postId,likesCount: {$gt: 0}}, //If it is greater than 0
           { $inc: { likesCount: -1 } },
           { new: true }
         );
-
+      
+      if(!existingLike){
+        updatedPost = await Post.findById(postId);
+      }  
         message = 'Like removed successfully';  
 
       } else {
+        
+        const targetPost = await Post.findById(postId);
+        if(!targetPost){
+          throw new Error('Post not found');
+        }
+
         const newLike = new Like({user:userId,post: postId});
         await newLike.save();
 
@@ -170,20 +179,25 @@ import { promises } from 'node:dns';
           { new: true }
         );
 
-        message = 'Post liked successfully';  
-        
-        if(!updatedPost){
-          throw new Error('Post not found');
-        }
-        
-        return { post: updatedPost, message };
+        message = 'Post liked successfully';   
       }
+
+      if(!updatedPost){
+        throw new Error('Post not found');
+      }
+        
+      return { post: updatedPost, message };
+
     } catch (error) {
+
+      if (error instanceof Error && error.message.includes('E11000')) {
+      throw new Error('You have already liked this post');
+      }
+
       const errorMessage = error instanceof Error ? error.message : 'Like operation failed';
       throw new Error(errorMessage);
-    }
-    
-  }
+    } 
+  };
 
   const Post = mongoose.model<IPost,IPostModel>('Post', postSchema);
   export default Post;

@@ -20,7 +20,11 @@
       }
 
       const userId = req.user._id;
-       
+
+      if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+       return res.status(401).json({ message: 'Invalid user session' });
+      } 
+      
       const result = await Post.toggleLike(postId, userId);
 
       return res.status(200).json({
