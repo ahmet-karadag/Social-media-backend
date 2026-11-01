@@ -7,6 +7,7 @@
     username: string;
     email:string;
     password: string;
+    profilePicture?: string;
     createdAt?: Date;
     updatedAt?: Date;
   }
@@ -23,6 +24,7 @@
   interface IUserModel extends mongoose.Model<IUserDocument> {
     registerUser(data: IAuthData): Promise<IUserDocument>;
     findByCredentials(data: IAuthData): Promise<IUserDocument>;
+    getUserProfile(data: { userId: string }): Promise<IUserDocument>;
   }
   export type IUserDocument = IUser & IUserMethods & mongoose.Document;
 
@@ -48,6 +50,10 @@
       required: true,
       minlength: [6, 'Password must be at least 6 characters']
     },
+    profilePicture:{
+      type: String,
+      default: ''
+    }
   },{ timestamps: true});
 
   userSchema.pre<IUserDocument>('save', async function(){
@@ -123,6 +129,21 @@
     } catch (error) {
       throw new Error('invalid password');
      }
+    return user;
+  };
+
+  userSchema.statics.getUserProfile = async function(data: {userId: string}): Promise<IUserDocument>{
+    const User = this as IUserModel;
+
+    const {userId} = data;
+
+    if(!userId){
+       throw new Error('User ID is required');
+    }
+    const user = await User.findById(userId);
+    if(!user){
+      throw new Error('User not found'); 
+    }
     return user;
   };
 
