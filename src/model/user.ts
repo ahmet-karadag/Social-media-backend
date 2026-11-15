@@ -1,6 +1,7 @@
   import mongoose from 'mongoose';
   import bcrypt from 'bcryptjs';
   import jwt from 'jsonwebtoken';
+  import { uploadFileToS3 } from '../services/s3Service';
 
 
   export interface IUser {
@@ -25,6 +26,7 @@
     registerUser(data: IAuthData): Promise<IUserDocument>;
     findByCredentials(data: IAuthData): Promise<IUserDocument>;
     getUserProfile(data: { userId: string }): Promise<IUserDocument>;
+    saveProfilePicture(data: { userId: string; file: Express.Multer.File }): Promise<string>;
   }
   export type IUserDocument = IUser & IUserMethods & mongoose.Document;
 
@@ -175,6 +177,26 @@
     delete userObject.password; // API yanıtlarında şifre asla gözükmez
     return userObject;
   };
+
+  userSchema.statics.saveProfilePicture = async function(data: {userId: string, file: Express.Multer.File}): Promise<string>{
+    const User = this as IUserModel;
+    const { userId, file } = data;
+    
+    if(!userId){
+      throw new Error('User ID is required');
+    }
+    const imageUrl = await uploadFileToS3(file.buffer, file.originalname, file.mimetype);
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      {profilePicture: imageUrl},
+      {new: true}
+    );
+    if(!updatedUser){
+      throw new Error('User not found');
+    }
+    return imageUrl;
+  }
 
 const User = mongoose.model<IUserDocument, IUserModel>('User',userSchema);
 
