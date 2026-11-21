@@ -1,7 +1,7 @@
   // const express = require('express');
   // const dotenv = require('dotenv');
   // const connectDB = require('./src/config/db');
-
+  import 'dotenv/config'; 
   import express,{ Application} from 'express';
   import dotenv from 'dotenv'
   import connectDB from './config/db';
